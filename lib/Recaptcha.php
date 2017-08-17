@@ -6,7 +6,7 @@
  */
 class Recaptcha
 {
-    public function validate()
+    public function validateRecaptcha()
     {
         $captcha = $_POST['g-recaptcha-response'];
         if(!$captcha){

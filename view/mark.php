@@ -4,15 +4,16 @@
         <h2 class="featurette-heading">Відмітитись</h2>
 
         <?php
-        $signupHidden = "";
-        if (isset($_POST['action']) && $_POST['action'] == 'mark') {
-            if (empty($markErrorMessage)) {
+        $markHidden = "";
+        if ( $viewParams['action'] == "mark" ){
+            $markAlertClass = "danger";
+            if ( $viewParams['status'] == "ok" ){
                 $markHidden = "hidden";
-                echo '<div class="alert alert-success" role="alert">Ви успішно відмітились</div>';
-            } else {
-                echo '<div class="alert alert-danger" role="alert">'.$markErrorMessage.'</div>';
+                $markAlertClass = "success";
             }
+            echo '<div class="alert alert-'.$markAlertClass.'" role="alert">'.$viewParams['message'].'</div>';
         }
+
         ?>
 
         <form action="/#block-search" class="form-search <?php echo $markHidden; ?>" method="POST">

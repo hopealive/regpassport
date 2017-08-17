@@ -2,13 +2,112 @@
 /**
  * Description of Utils
  *
- * @author gregzorb
+ * @author hopealive
  */
-require("Db.class.php");
-require("Recaptcha.php");
+include("Db.class.php");
+include("Validators.php");
+include("Recaptcha.php");
 
 class Utils extends DB
 {
+
+    /**
+     * Routing
+     * @return array
+     */
+    public function routing()
+    {
+        $viewParams = [];
+        if ($_POST['action']) {
+            switch ($_POST['action']) {
+                case "signup":
+                    $viewParams = $this->action_signup();
+                    break;
+                case "mark":
+                    $viewParams = $this->action_mark();
+                    break;
+            }
+            $viewParams['action'] = $_POST['action'];
+        } else {
+            $viewParams['action'] = 'index';
+        }
+        return $viewParams;
+    }
+
+    //----------
+    //Controller
+    //----------
+    
+    /**
+     * @return array
+     */
+    public function action_signup()
+    {
+        $row    = [
+            'firstname' => $_POST['firstname'],
+            'patronymic' => $_POST['patronymic'],
+            'surname' => $_POST['surname'],
+        ];
+        $result = $this->validateNewUser($row);
+
+        $message = 'Невідома помилка';
+
+        //check if registered for last 30 minutes //TODO:
+
+        if ($result['status'] == 'ok' && !empty($result['data'])) {
+            $userId = $this->addNewUser($result['data']);
+            if ($userId > 0) {
+                $message = "Ви успішно зареєструвались. <br>Ваш номер: <br><h1>$userId</h1>";
+                return [
+                    'status' => 'ok',
+                    'user-id' => $userId,
+                    'message' => $message,
+                ];
+            } else {
+                $message = "Помилка збереження користувача";
+            }
+        } elseif (isset($result['message'])) {
+            $message = $result['message'];
+        }
+
+        return [
+            'status' => 'fail',
+            'message' => $message,
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function action_mark()
+    {
+        $message = '';
+
+        $userId = (int) $_POST['user-id'];
+
+        //check if marked today //TODO:
+        
+        //check if marked another for last 30 minutes //TODO:
+
+        //add mark
+        if ($this->mark($userId)) {
+            return [
+                'status' => 'ok',
+                'message' => 'Ви успішно відмітились',
+            ];
+        } else {
+            $message = 'Помилка відмічення';
+        }
+        return [
+            'status' => 'fail',
+            'message' => $message,
+        ];
+    }
+
+    
+    //----------
+    //DB actions
+    //----------
 
     public function searchForMarking()
     {
@@ -16,9 +115,10 @@ class Utils extends DB
 
         $data = [];
         if (isset($_POST['term'])) {
-            $term = trim(htmlentities(strip_tags($_POST['term'])));
-            $term = stripslashes($term);
-            if (strlen($term) > 0 && $this->validateAutocomplete($term)) {
+            $term       = trim(htmlentities(strip_tags($_POST['term'])));
+            $term       = stripslashes($term);
+            $Validators = new Validators();
+            if (strlen($term) > 0 && $Validators->validateAutocomplete($term)) {
                 //search in id
                 foreach ($users as $u) {
                     $checkItem = [
@@ -64,99 +164,7 @@ class Utils extends DB
         return json_encode($data);
     }
 
-    public function validateNewUser($row)
-    {
-        if (!$this->validateRecaptcha()) {
-            return ['status' => 'fail', 'message' => 'Введена неправильна капча'];
-        }
-
-        $row = $this->filterUserData($row);
-        if (!$row) {
-            return ['status' => 'fail', 'message' => 'Введено некорректні/пусті данні'];
-        }
-
-        $row = $this->validateUser($row);
-        if (!$row) {
-            return ['status' => 'fail', 'message' => 'Введено некорректні данні'];
-        }
-
-        $row = $this->validateUserExists($row);
-        if (!$row) {
-            return ['status' => 'fail', 'message' => 'Такий користувач вже існує в системі'];
-        }
-        return [
-            'status' => 'ok',
-            'data' => $row,
-        ];
-    }
-
-    //filter data
-    public function filterUserData($row)
-    {
-        foreach ($row as $key => $r) {
-            $r = trim(htmlentities(strip_tags($r)));
-            $r = stripslashes($r);
-            if (empty($r) OR strlen($r) < 3) {
-                return false;
-            }
-            $row[$key] = $r;
-        }
-        return $row;
-    }
-
-    public function validateAutocomplete($item)
-    {
-        if (!preg_match("/[0-9A-Za-zА-Яа-яЁёЇїІіЄєҐґ]/", $item)) {
-            return FALSE;
-        }
-        return true;
-    }
-
-    protected function validateUser($row)
-    {
-        foreach ($row as $key => $r) {
-            if (!preg_match("/[A-Za-zА-Яа-яЁёЇїІіЄєҐґ]/", $r)) {
-                return FALSE;
-            }
-        }
-        return $row;
-    }
-
-    public function validateUserExists($row)
-    {
-        //validate for exists
-        $query = "SELECT * FROM users
-            WHERE firstname = '".$row['firstname']."'
-            AND patronymic = '".$row['patronymic']."'
-            AND surname = '".$row['surname']."'
-        ";
-
-        $userExists = $this->query($query);
-        if (!empty($userExists)) {
-            return FALSE;
-        }
-        return $row;
-    }
-
-    public function validateRecaptcha()
-    {
-        $captcha = $_POST['g-recaptcha-response'];
-        if (!$captcha) {
-            return false;
-        }
-        $secretKey    = "6LeY4SwUAAAAAHv1pvwaAqeUIjLdxp9y2Efn18Xb";
-        $ip           = $_SERVER['REMOTE_ADDR'];
-        $response     = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".$secretKey."&response=".$captcha."&remoteip=".$ip);
-        $responseKeys = json_decode($response, true);
-        if (intval($responseKeys["success"]) !== 1) {
-            //spammer
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    public function add($row)
+    public function addNewUser($row)
     {
         $query = "INSERT INTO users
             (firstname, patronymic, surname, create_date, is_active) VALUES
@@ -164,8 +172,15 @@ class Utils extends DB
             '".$row['patronymic']."',
             '".$row['surname']."',
             '".date("Y-m-d H:i:s")."', 1)";
-        if ($this->query($query)) {
-            return true;
+
+        try {
+            $this->beginTransaction();
+            $this->query($query);
+            $id = $this->lastInsertId();
+            $this->executeTransaction();
+            return $id;
+        } catch (PDOExecption $e) {
+            $this->rollBack();
         }
         return FALSE;
     }
@@ -186,7 +201,7 @@ class Utils extends DB
 
     public function showActive()
     {
-        $query = "SELECT 
+        $query = "SELECT
                     u.id as u__id,
                     u.firstname as u__firstname,
                     u.patronymic as u__patronymic,
@@ -203,10 +218,16 @@ class Utils extends DB
         return $this->query($query);
     }
 
-    public function setActive($id)
+    //Toggle User: activate|disactivate
+
+    /**
+     * @param int $userId
+     * @return boolean
+     */
+    public function activateUser($userId)
     {
-        if ($id > 0) {
-            $query = "UPDATE users SET is_active = 1 WHERE  id = ".(int) $id;
+        if ($userId > 0) {
+            $query = "UPDATE users SET is_active = 1 WHERE  id = ".(int) $userId;
             if ($this->query($query)) {
                 return true;
             }
@@ -214,7 +235,107 @@ class Utils extends DB
         return false;
     }
 
-    public function getFullName($u)
+    /**
+     * @param type $userId
+     * @return boolean
+     */
+    public function disactivateUser($userId)
+    {
+        if ($userId > 0) {
+            $query = "UPDATE users SET is_active = 0 WHERE  id = ".(int) $userId;
+            if ($this->query($query)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+
+    public function validateNewUser($row)
+    {
+        //captcha
+        $Recaptcha = new Recaptcha();
+        if (!$Recaptcha->validateRecaptcha()) {
+            return ['status' => 'fail', 'message' => 'Введена неправильна капча'];
+        }
+
+        //filter
+        $row = $this->filterUserData($row);
+        if (!$row) {
+            return ['status' => 'fail', 'message' => 'Введено некорректні/пусті данні'];
+        }
+
+        //validate
+        $Validators = new Validators();
+        if (!$Validators->validateUser($row)) {
+            return ['status' => 'fail', 'message' => 'Введено некорректні данні'];
+        }
+
+        if (!$this->validateUserExists($row)) {
+            return ['status' => 'fail', 'message' => 'Такий користувач вже існує в системі'];
+        }
+        return [
+            'status' => 'ok',
+            'data' => $row,
+        ];
+    }
+
+    /**
+     * Filter data
+     * @param type array
+     * @return array
+     */
+    public function filterUserData($row)
+    {
+        foreach ($row as $key => $r) {
+            $r = trim(htmlentities(strip_tags($r)));
+            $r = stripslashes($r);
+            if (empty($r) OR strlen($r) < 3) {
+                return false;
+            }
+            $row[$key] = $r;
+        }
+        return $row;
+    }
+
+    /**
+     *
+     * @param type array
+     * @return boolean
+     */
+    public function validateUserExists($row)
+    {
+        //validate for exists
+        $query = "SELECT * FROM users
+            WHERE firstname = '".$row['firstname']."'
+            AND patronymic = '".$row['patronymic']."'
+            AND surname = '".$row['surname']."'
+        ";
+
+        $userExists = $this->query($query);
+        if (!empty($userExists)) {
+            return FALSE;
+        }
+        return true;
+    }
+
+    /**
+     *   @void
+     * 	Creates the log
+     *
+     */
+    public function writeDbLog($message)
+    {
+        $query = "INSERT INTO logs (log, create_date) VALUES
+            ( '$message', '".date('Y-m-d H:i:s')."' )";
+        if ($this->query($query)) {
+            return true;
+        }
+        return FALSE;
+    }
+
+    protected function getFullName($u)
     {
         $sn       = mb_strtoupper(mb_substr($u['u__surname'], 0, 1, 'UTF-8'));
         $sn       = $sn.mb_substr($u['u__surname'], 1, strlen($u['u__surname']),
@@ -227,40 +348,5 @@ class Utils extends DB
             .". "
         ;
         return $fullname;
-    }
-
-    function renderBlock($block)
-    {
-        $folder = __DIR__."/../blocks";
-        switch ($block) {
-            case "head":
-                $filename = "/head.html";
-                break;
-            case "queue":
-                $filename = "/queue.html";
-                break;
-            case "navbar":
-                $filename = "/navbar.html";
-                break;
-            case "contacts":
-                $filename = "/contacts.html";
-                break;
-            case "footer":
-                $filename = "/footer.html";
-                break;
-            case "js":
-                $filename = "/js.html";
-                break;
-            case "testmodal":
-                $filename = "/testmodal.html";
-                break;
-        }
-
-        $filename = $folder.$filename;
-
-        $handle   = fopen($filename, "rb");
-        $contents = fread($handle, filesize($filename));
-        fclose($handle);
-        return $contents;
     }
 }

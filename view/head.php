@@ -3,12 +3,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="author" content="">
 
-    <link rel="alternate" href="/Інфраструктура/Держустанови/Паспортні_відділи/васильківський-районний-відділ-дмс/7365/?setcity=272" hreflang="uk" />                		        
+    <link rel="alternate" href="/Інфраструктура/Держустанови/Паспортні_відділи/васильківський-районний-відділ-дмс/7365/?setcity=272" hreflang="uk" />
     <meta name="Description" content="Послуги які надаються державною міграційною службою України:
           1. Набуття громадянства України:
           Набуття громадянства України за народженням
-          Режим работы и адрес паспортного стола, Васильков; Киевская область" />  
-    <meta name="KeyWords" content="Васильківський районний відділ ДМС України у Київській області, Васильков, паспортный стол, ОВИР, 
+          Режим работы и адрес паспортного стола, Васильков; Киевская область" />
+    <meta name="KeyWords" content="Васильківський районний відділ ДМС України у Київській області, Васильков, паспортный стол, ОВИР,
           режим работы, адрес, загранпаспорт " />
     <!--Social-->
     <meta itemprop="image" content="/images/favicon.png">
@@ -16,7 +16,7 @@
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="regpassport.com" />
 
-    <link rel="icon" href="/images/favicon.png" type="image/x-icon" /> 
+    <link rel="icon" href="/images/favicon.png" type="image/x-icon" />
     <link rel="shortcut icon" href="/images/favicon.png" type="image/x-icon" />
 
 

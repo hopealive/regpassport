@@ -1,4 +1,5 @@
 lib/logs/*
-lib/settings.*
+lib/settings.ini.php
+tmp/
 dev
 www

@@ -6,61 +6,25 @@ ini_set('error_reporting', E_ALL);
  *
  * @author gregzorb
  */
+
 require("lib/Utils.php");
 $utils = new Utils();
-
-if ($_POST) {
-
-    switch ($_POST['action']) {
-        case "signup":
-            $signupErrorMessage = "";
-            $utils              = new Utils();
-            $row                = [
-                'firstname' => $_POST['firstname'],
-                'patronymic' => $_POST['patronymic'],
-                'surname' => $_POST['surname'],
-            ];
-            $result             = $utils->validateNewUser($row);
-            if ($result['status'] == 'ok' && !empty($result['data'])) {
-                if (!$utils->add($result['data'])) {
-                    $signupErrorMessage = "Помилка збереження користувача";
-                }
-            } elseif (isset($result['message'])) {
-                $signupErrorMessage = $result['message'];
-            } else {
-                $signupErrorMessage = 'Невідома помилка';
-            }
-
-            break;
-        case "mark":
-            $markErrorMessage = '';
-
-            $userId = (int) $_POST['user-id'];
-
-            //check if marked today
-            //check if marked for last 1 hour
-            //add mark
-            if (!$utils->mark($userId)) {
-                $markErrorMessage = 'Помилка відмічення';
-            }
-            break;
-    }
-}
+$viewParams = $utils->routing();
 ?>
 
 
 <!DOCTYPE html>
 <html lang="en">
-    <?php echo $utils->renderBlock("head"); ?>
+    <?php include('view/head.php'); ?>
     <body>
-        <?php echo $utils->renderBlock("navbar"); ?>
+        <?php include('view/navbar.php'); ?>
         <div class="container marketing">
-            <?php echo $utils->renderBlock('testmodal'); ?>
-            <?php echo $utils->renderBlock('queue'); ?>
-            <?php include('blocks/search.php'); ?>
-            <?php include('blocks/signup.php'); ?>
-            <?php echo $utils->renderBlock('contacts'); ?>
-            <?php echo $utils->renderBlock('footer'); ?>
+            <?php include('view/testmodal.php'); ?>
+            <?php include('view/queue.php'); ?>
+            <?php include('view/mark.php'); ?>
+            <?php include('view/signup.php'); ?>
+            <?php include('view/contacts.php'); ?>
+            <?php include('view/footer.php'); ?>
         </div>
 
         <!-- core JavaScript

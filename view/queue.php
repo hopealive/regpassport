@@ -1,6 +1,4 @@
 <div class="row featurette" id="block-list">
-
-
     <div class="col-md-11 push-md-1">
         <h2 class="featurette-heading">Черга
             <span class="text-muted"> до кабінету №1</span>

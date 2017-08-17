@@ -4,13 +4,13 @@
 
         <?php
         $signupHidden = "";
-        if (isset($_POST['action']) && $_POST['action'] == 'signup') {
-            if (empty($signupErrorMessage)) {
+        if ( $viewParams['action'] == "signup" ){
+            $signupAlertClass = "danger";
+            if ( $viewParams['status'] == "ok" ){
                 $signupHidden = "hidden";
-                echo '<div class="alert alert-success" role="alert">Ви успішно зареєструвались</div>';
-            } else {
-                echo '<div class="alert alert-danger" role="alert">'.$signupErrorMessage.'</div>';
+                $signupAlertClass = "success";
             }
+            echo '<div class="alert alert-'.$signupAlertClass.'" role="alert">'.$viewParams['message'].'</div>';
         }
         ?>
         <form action="/#block-signup" class="form-signup <?php echo $signupHidden; ?>" method="POST">
