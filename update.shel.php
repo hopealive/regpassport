@@ -7,9 +7,7 @@
 include("lib/Utils.php");
 $utils = new Utils();
 
-$days = 3;
-
-$users = $utils->getActiveUsersRegisteredDaysAgo($days);
+$users = $utils->getActiveUsersRegisteredDaysAgo();
 if (empty($users)) {
     exit;
 }
@@ -19,7 +17,7 @@ if (empty($userIds)) {
     exit;
 }
 
-$usersWithMarks = $utils->getLastMarksByUsers($userIds, $days);
+$usersWithMarks = $utils->getLastMarksByUsers($userIds);
 if ( empty($usersWithMarks) ){
     $userIdsWithMarks = [];
 } else {

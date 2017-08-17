@@ -114,6 +114,7 @@ function initListUsers() {
         "ajax": "data.php?action=list",
         "columns": [
             {"data": "id"}
+            , {"data": "uid"}
             , {"data": "name"}
             , {"data": "marked"}
         ]

@@ -11,6 +11,8 @@ include("Recaptcha.php");
 class Utils extends DB
 {
 
+    const INTERVAL_DAYS = 3;
+
     /**
      * Routing
      * @return array
@@ -141,8 +143,14 @@ class Utils extends DB
     {
         $users = $this->showActive();
         if (!empty($users)) {
+
+            $existsUsers = [];
             $i = 1;
             foreach ($users as $u) {
+                if (in_array($u['u__id'], $existsUsers )){
+                    continue;
+                }
+
                 $marked = '<span class="badge badge-danger">Ні</span>';
                 if (!is_null($u['m__id'])) {
                     $marked = '<span class="badge badge-success mark-this" style="cursor:pointer">Так</span>';
@@ -150,9 +158,11 @@ class Utils extends DB
 
                 $items[] = [
                     "id" => $i,
+                    "uid" => $u['u__id'],
                     "name" => $this->getFullName($u),
                     "marked" => $marked,
                 ];
+                $existsUsers[] = $u['u__id'];
                 ++$i;
             }
         }
@@ -206,7 +216,8 @@ class Utils extends DB
                     m.id as m__id
             FROM users as u
             LEFT JOIN marks as m ON u.id = m.user_id
-            and DATE(m.create_date) = CURDATE()
+                and DATE(m.create_date) <= CURDATE()
+                and DATE(m.create_date) >= CURDATE()  - INTERVAL ".self::INTERVAL_DAYS." DAY
             WHERE u.is_active = 1
                 and u.has_passport = 0
             ORDER BY u.create_date ASC";
@@ -214,34 +225,28 @@ class Utils extends DB
         return $this->query($query);
     }
 
-    public function getActiveUsersRegisteredDaysAgo($days)
+    public function getActiveUsersRegisteredDaysAgo()
     {
-        if (!$days > 0) {
-            return false;
-        }
         $query = "SELECT u.id as u__id
             FROM users as u
             WHERE u.is_active = 1
                 and u.has_passport = 0
                 and DATE(u.create_date) <= CURDATE() - INTERVAL 
-                ".(int) $days." DAY";
+                ".self::INTERVAL_DAYS." DAY";
 
         return $this->query($query);
     }
 
-    public function getLastMarksByUsers($userIds, $days)
+    public function getLastMarksByUsers($userIds)
     {
         if (empty($userIds) > 0) {
-            return false;
-        }
-        if (!$days > 0) {
             return false;
         }
         $query = "SELECT DISTINCT m.user_id as m__user_id
             FROM marks as m
             WHERE m.user_id IN (".implode(",", $userIds).")
                 and DATE(m.create_date) >= CURDATE() - INTERVAL
-                ".(int) $days." DAY";
+                ".self::INTERVAL_DAYS." DAY";
 
         return $this->query($query);
     }
