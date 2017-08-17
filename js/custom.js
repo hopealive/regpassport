@@ -122,7 +122,7 @@ function initListUsers() {
 
 //testmode
 function initPopup() {
-    if ($.cookie('popuped') == 'null') {
+    if ( $.cookie('popuped') == undefined) {
         $('.test-mode-modal').modal();
         $.cookie('popuped', '1');
     }

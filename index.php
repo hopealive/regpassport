@@ -4,7 +4,6 @@
  *
  * @author hopealive
  */
-
 require("lib/Utils.php");
 $utils = new Utils();
 $viewParams = $utils->routing();
