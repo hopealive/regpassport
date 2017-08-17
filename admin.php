@@ -1,13 +1,9 @@
 <?php
-//check client info
-if (
-    md5($_SERVER['HTTP_USER_AGENT']) != "93e8f6a8d4df3cb6af9902e296d15bc5"
-){
-//    echo "No auth"; exit;
-}
-
 require("lib/Utils.php");
 $utils = new Utils();
+if ( !$utils->validateSuperAdmin() ){
+    echo "No admin device"; exit;
+}
 ?>
 
 <!DOCTYPE html>
@@ -19,5 +15,24 @@ $utils = new Utils();
             <?php include('view/queue.php'); ?>
             <?php include('view/footer.php'); ?>
         </div>
+
+        <!-- core JavaScript
+        ================================================== -->
+
+        <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+        <script src="https://getbootstrap.com/assets/js/vendor/popper.min.js"></script>
+        <script src="https://getbootstrap.com/dist/js/bootstrap.min.js"></script>
+        <script src="https://getbootstrap.com/assets/js/vendor/holder.min.js"></script>
+        <script src="https://getbootstrap.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+        <script src="http://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+
+
+        <script src="js/jquery.cookie.js?<?php echo date("Ymdhis"); ?>"></script>
+
+
     </body>
 </html>

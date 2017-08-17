@@ -2,7 +2,7 @@
 /**
  * Description of Recaptcha
  *
- * @author gregzorb
+ * @author hopealive
  */
 class Recaptcha
 {
