@@ -213,34 +213,53 @@ class Utils extends DB
 
         return $this->query($query);
     }
-    //Toggle User: activate|disactivate
 
-    /**
-     * @param int $userId
-     * @return boolean
-     */
-    public function activateUser($userId)
+    public function getActiveUsersRegisteredDaysAgo($days)
     {
-        if ($userId > 0) {
-            $query = "UPDATE users SET is_active = 1 WHERE  id = ".(int) $userId;
-            if ($this->query($query)) {
-                return true;
-            }
+        if (!$days > 0) {
+            return false;
         }
-        return false;
+        $query = "SELECT u.id as u__id
+            FROM users as u
+            WHERE u.is_active = 1
+                and u.has_passport = 0
+                and DATE(u.create_date) <= CURDATE() - INTERVAL 
+                ".(int) $days." DAY";
+
+        return $this->query($query);
+    }
+
+    public function getLastMarksByUsers($userIds, $days)
+    {
+        if (empty($userIds) > 0) {
+            return false;
+        }
+        if (!$days > 0) {
+            return false;
+        }
+        $query = "SELECT DISTINCT m.user_id as m__user_id
+            FROM marks as m
+            WHERE m.user_id IN (".implode(",", $userIds).")
+                and DATE(m.create_date) >= CURDATE() - INTERVAL
+                ".(int) $days." DAY";
+
+        return $this->query($query);
     }
 
     /**
-     * @param type $userId
+     * @param array $userIds
      * @return boolean
      */
-    public function disactivateUser($userId)
+    public function disactivateUsersByIds($userIds)
     {
-        if ($userId > 0) {
-            $query = "UPDATE users SET is_active = 0 WHERE  id = ".(int) $userId;
-            if ($this->query($query)) {
-                return true;
-            }
+        if (empty($userIds)) {
+            return false;
+        }
+        $query = "UPDATE users
+                SET is_active = 0
+                WHERE id IN (".implode(",", $userIds).")";
+        if ($this->query($query)) {
+            return true;
         }
         return false;
     }
