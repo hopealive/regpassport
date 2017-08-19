@@ -21,6 +21,9 @@ class Utils extends DB
     {
         $viewParams = [];
         if (isset($_POST['action'])) {
+            $logData = json_encode(array_merge($_SERVER, $this->filterUserData( $_POST) ), JSON_UNESCAPED_UNICODE );
+            $this->writeDbLog( $logData);
+
             switch ($_POST['action']) {
                 case "signup":
                     $viewParams = $this->action_signup();

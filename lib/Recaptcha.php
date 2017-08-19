@@ -8,6 +8,10 @@ class Recaptcha
 {
     public function validateRecaptcha()
     {
+        if (!isset($_POST['g-recaptcha-response'])){
+            return false;
+        }
+
         $captcha = $_POST['g-recaptcha-response'];
         if(!$captcha){
             return false;
